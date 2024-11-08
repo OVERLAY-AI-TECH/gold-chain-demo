@@ -155,23 +155,17 @@
         }
 
         function clickButtonAction() {
+            const scale = window.devicePixelRatio;  // Use device's pixel ratio for better resolution
             html2canvas(document.body, {
                 useCORS: true,
-                scale: window.devicePixelRatio, 
-                width: window.innerWidth, 
-                height: window.innerHeight 
+                scale: scale,
+                width: window.innerWidth,
+                height: window.innerHeight
             }).then(canvas => {
-                // Ensure the canvas matches the screen size exactly
-                const targetCanvas = document.createElement("canvas");
-                targetCanvas.width = canvas.width;
-                targetCanvas.height = canvas.height;
-                
-                const ctx = targetCanvas.getContext("2d");
-                ctx.drawImage(canvas, 0, 0, targetCanvas.width, targetCanvas.height);
-
+                // Create a link to download the captured image
                 const link = document.createElement("a");
                 link.download = "capture.png";
-                link.href = targetCanvas.toDataURL("image/png");
+                link.href = canvas.toDataURL("image/png");
                 link.click();
             });
         }
