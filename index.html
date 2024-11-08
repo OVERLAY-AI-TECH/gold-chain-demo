@@ -1,123 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Neck Chains Try-On with MindAR and A-Frame</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Jewelry Try-On</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-aframe.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> <!-- Add html2canvas library -->
     <style>
-        body {
+        body, html {
             margin: 0;
-        }
-        .example-container {
+            padding: 0;
             overflow: hidden;
-            position: absolute;
-            width: 100%;
+            background-color: transparent;
             height: 100%;
-        }
-        .arrow-buttons {
-            position: fixed;
-            top: 50%;
             width: 100%;
-            display: flex;
-            justify-content: space-between;
-            z-index: 2;
         }
-        .arrow-buttons button, .screenshot-button {
-            background-color: #000;
-            color: #fff;
-            border: none;
-            padding: 10px;
-            font-size: 20px;
-            cursor: pointer;
-            opacity: 0.7;
-        }
-        .arrow-buttons button:hover, .screenshot-button:hover {
-            opacity: 1;
-        }
-        .screenshot-button {
-            position: fixed;
-            bottom: 20px;
+
+        #try-on-button {
+            position: absolute;
+            bottom: 10%;
             left: 50%;
             transform: translateX(-50%);
-            z-index: 3;
+            padding: 12px 24px;
+            font-size: 18px;
+            color: white;
+            background-color: rgba(51, 51, 51, 0.7);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .arrow-button {
+            position: fixed;
+            font-size: 24px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: none;
+            padding: 12px;
+            cursor: pointer;
+            z-index: 100;
+        }
+
+        #left-arrow {
+            left: 5%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #right-arrow {
+            right: 5%;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        #click-button {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: rgba(51, 51, 51, 0.7);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 100;
         }
     </style>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const entities = [
-                document.querySelector(".chain1-entity"),
-                document.querySelector(".chain2-entity"),
-                document.querySelector(".chain3-entity"),
-                document.querySelector(".chain4-entity"),
-                document.querySelector(".chain5-entity")
-            ];
-            let currentIndex = 0;
-
-            const updateVisibility = () => {
-                entities.forEach((entity, index) => {
-                    entity.setAttribute("visible", index === currentIndex);
-                });
-            };
-
-            document.getElementById("prev").addEventListener("click", () => {
-                currentIndex = (currentIndex - 1 + entities.length) % entities.length;
-                updateVisibility();
-            });
-
-            document.getElementById("next").addEventListener("click", () => {
-                currentIndex = (currentIndex + 1) % entities.length;
-                updateVisibility();
-            });
-
-            document.getElementById("screenshot").addEventListener("click", () => {
-                const canvas = document.querySelector("canvas");
-                const link = document.createElement("a");
-                link.href = canvas.toDataURL("image/png");
-                link.download = "screenshot.png";
-                link.click();
-            });
-
-            updateVisibility(); // Initialize with the first chain visible
-        });
-    </script>
 </head>
 <body>
-    <div class="example-container">
-        <div class="arrow-buttons">
-            <button id="prev">&#9664; Prev</button>
-            <button id="next">Next &#9654;</button>
-        </div>
-        <button id="screenshot" class="screenshot-button">Click</button>
 
-        <a-scene mindar-face embedded color-space="sRGB" renderer="colorManagement: true, physicallyCorrectLights" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false">
-            <a-assets>
-                <img id="chain1Image" src="design1.png" alt="Chain 1 Image">
-                <img id="chain2Image" src="design2.png" alt="Chain 2 Image">
-                <img id="chain3Image" src="design3.png" alt="Chain 3 Image">
-                <img id="chain4Image" src="design4.png" alt="Chain 4 Image">
-                <img id="chain5Image" src="design5.png" alt="Chain 5 Image">
-            </a-assets>
-            <a-camera active="false" position="0 0 0"></a-camera>
+    <!-- AR Scene -->
+    <a-scene mindar-image="imageTargetSrc: ./targets.mind" color-space="sRGB" embedded style="background: transparent; width: 100vw; height: 100vh;">
+        <a-assets>
+            <img id="design1" src="design1.png" />
+            <img id="design2" src="design2.png" />
+            <img id="design3" src="design3.png" />
+            <img id="design4" src="design4.png" />
+            <img id="design5" src="design5.png" />
+        </a-assets>
+        
+        <a-camera></a-camera>
+        <a-entity id="marker" mindar-image-target="targetIndex: 0"></a-entity>
+    </a-scene>
 
-            <!-- Chain overlays positioned around the neck area -->
-            <a-entity mindar-face-target="anchorIndex: 200">
-                <a-image src="#chain1Image" position="0 -0.8 0.1" rotation="0 0 0" scale="0.6 0.6 0.6" class="chain1-entity" visible="false"></a-image>
-            </a-entity>
-            <a-entity mindar-face-target="anchorIndex: 200">
-                <a-image src="#chain2Image" position="0 -0.8 0.1" rotation="0 0 0" scale="0.6 0.6 0.6" class="chain2-entity" visible="false"></a-image>
-            </a-entity>
-            <a-entity mindar-face-target="anchorIndex: 200">
-                <a-image src="#chain3Image" position="0 -0.8 0.1" rotation="0 0 0" scale="0.6 0.6 0.6" class="chain3-entity" visible="false"></a-image>
-            </a-entity>
-            <a-entity mindar-face-target="anchorIndex: 200">
-                <a-image src="#chain4Image" position="0 -0.8 0.1" rotation="0 0 0" scale="0.6 0.6 0.6" class="chain4-entity" visible="false"></a-image>
-            </a-entity>
-            <a-entity mindar-face-target="anchorIndex: 200">
-                <a-image src="#chain5Image" position="0 -0.8 0.1" rotation="0 0 0" scale="0.6 0.6 0.6" class="chain5-entity" visible="false"></a-image>
-            </a-entity>
-        </a-scene>
-    </div>
+    <button id="try-on-button" onclick="openCamera()">Try Our Jewellery</button>
+    <button class="arrow-button" id="left-arrow" onclick="previousImage()">&#9664;</button>
+    <button class="arrow-button" id="right-arrow" onclick="nextImage()">&#9654;</button>
+    <button id="click-button" onclick="clickButtonAction()">Click</button>
+
+    <script>
+        const tryOnButton = document.getElementById("try-on-button");
+        const images = ["design1.png", "design2.png", "design3.png", "design4.png", "design5.png"];
+        let currentIndex = 0;
+        let jewelryOverlay;
+
+        const overlaySizes = {
+            "design1.png": 200,
+            "design2.png": 250,
+            "design3.png": 180,
+            "design4.png": 220,
+            "design5.png": 200
+        };
+
+        document.querySelector("#marker").addEventListener("targetFound", () => {
+            tryOnButton.style.display = "block";
+        });
+
+        document.querySelector("#marker").addEventListener("targetLost", () => {
+            tryOnButton.style.display = "none";
+        });
+
+        function openCamera() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+            .then(stream => {
+                document.querySelector("a-scene").remove();
+                document.body.innerHTML += `<video autoplay style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover;" id="cameraFeed"></video>`;
+                
+                const video = document.getElementById("cameraFeed");
+                video.srcObject = stream;
+
+                jewelryOverlay = document.createElement("img");
+                updateImage();
+                jewelryOverlay.style.position = "fixed";
+                jewelryOverlay.style.top = "30%";
+                jewelryOverlay.style.left = "50%";
+                jewelryOverlay.style.transform = "translateX(-50%)";
+                document.body.appendChild(jewelryOverlay);
+
+                document.getElementById("left-arrow").style.display = "block";
+                document.getElementById("right-arrow").style.display = "block";
+            })
+            .catch(error => {
+                alert("Unable to access the camera.");
+            });
+        }
+
+        function updateImage() {
+            const currentImage = images[currentIndex];
+            jewelryOverlay.src = currentImage;
+            jewelryOverlay.style.width = overlaySizes[currentImage] + "px";
+        }
+
+        function previousImage() {
+            currentIndex = (currentIndex - 1 + images.length) % images.length;
+            updateImage();
+        }
+
+        function nextImage() {
+            currentIndex = (currentIndex + 1) % images.length;
+            updateImage();
+        }
+
+        function clickButtonAction() {
+            html2canvas(document.body).then(canvas => {
+                const link = document.createElement("a");
+                link.download = "capture.png";
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            });
+        }
+    </script>
 </body>
 </html>
