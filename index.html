@@ -6,7 +6,6 @@
     <title>AR Jewelry Try-On</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script> <!-- html2canvas library -->
     <style>
         body, html {
             margin: 0;
@@ -54,20 +53,6 @@
             top: 50%;
             transform: translateY(-50%);
         }
-
-        #click-button {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            background-color: rgba(51, 51, 51, 0.7);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 100;
-        }
     </style>
 </head>
 <body>
@@ -75,6 +60,7 @@
     <!-- AR Scene -->
     <a-scene mindar-image="imageTargetSrc: ./targets.mind" color-space="sRGB" embedded style="background: transparent; width: 100vw; height: 100vh;">
         <a-assets>
+            <!-- Preloading images for AR -->
             <img id="design1" src="design1.png" />
             <img id="design2" src="design2.png" />
             <img id="design3" src="design3.png" />
@@ -83,20 +69,27 @@
         </a-assets>
         
         <a-camera></a-camera>
+
+        <!-- Marker entity (without the image initially) -->
         <a-entity id="marker" mindar-image-target="targetIndex: 0"></a-entity>
     </a-scene>
 
+    <!-- Button to trigger try-on functionality -->
     <button id="try-on-button" onclick="openCamera()">Try Our Jewellery</button>
+
+    <!-- Navigation Arrows -->
     <button class="arrow-button" id="left-arrow" onclick="previousImage()">&#9664;</button>
     <button class="arrow-button" id="right-arrow" onclick="nextImage()">&#9654;</button>
-    <button id="click-button" onclick="clickButtonAction()">Click</button>
 
     <script>
         const tryOnButton = document.getElementById("try-on-button");
+
+        // Images array and current index
         const images = ["design1.png", "design2.png", "design3.png", "design4.png", "design5.png"];
         let currentIndex = 0;
         let jewelryOverlay;
 
+        // Object to store individual sizes for each design
         const overlaySizes = {
             "design1.png": 300,
             "design2.png": 350,
@@ -105,23 +98,32 @@
             "design5.png": 200
         };
 
+        // Show the button when the marker is detected
         document.querySelector("#marker").addEventListener("targetFound", () => {
+            console.log("Marker found!");
             tryOnButton.style.display = "block";
         });
 
         document.querySelector("#marker").addEventListener("targetLost", () => {
+            console.log("Marker lost!");
             tryOnButton.style.display = "none";
         });
 
+        // Function to open camera and show jewelry overlay
         function openCamera() {
+            console.log("Opening front camera...");
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
             .then(stream => {
+                console.log("Camera accessed successfully");
+
+                // Remove AR scene and show camera feed
                 document.querySelector("a-scene").remove();
                 document.body.innerHTML += `<video autoplay style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover;" id="cameraFeed"></video>`;
                 
                 const video = document.getElementById("cameraFeed");
                 video.srcObject = stream;
 
+                // Create overlay for jewelry
                 jewelryOverlay = document.createElement("img");
                 updateImage();
                 jewelryOverlay.style.position = "fixed";
@@ -130,50 +132,33 @@
                 jewelryOverlay.style.transform = "translateX(-50%)";
                 document.body.appendChild(jewelryOverlay);
 
+                // Show navigation arrows
                 document.getElementById("left-arrow").style.display = "block";
                 document.getElementById("right-arrow").style.display = "block";
             })
             .catch(error => {
+                console.error("Camera access failed:", error);
                 alert("Unable to access the camera.");
             });
         }
 
+        // Function to update the current image and size
         function updateImage() {
             const currentImage = images[currentIndex];
             jewelryOverlay.src = currentImage;
             jewelryOverlay.style.width = overlaySizes[currentImage] + "px";
         }
 
+        // Show the previous image
         function previousImage() {
             currentIndex = (currentIndex - 1 + images.length) % images.length;
             updateImage();
         }
 
+        // Show the next image
         function nextImage() {
             currentIndex = (currentIndex + 1) % images.length;
             updateImage();
-        }
-
-        function clickButtonAction() {
-            html2canvas(document.body, {
-                useCORS: true,
-                scale: window.devicePixelRatio, 
-                width: window.innerWidth, 
-                height: window.innerHeight 
-            }).then(canvas => {
-                // Ensure the canvas matches the screen size exactly
-                const targetCanvas = document.createElement("canvas");
-                targetCanvas.width = canvas.width;
-                targetCanvas.height = canvas.height;
-                
-                const ctx = targetCanvas.getContext("2d");
-                ctx.drawImage(canvas, 0, 0, targetCanvas.width, targetCanvas.height);
-
-                const link = document.createElement("a");
-                link.download = "capture.png";
-                link.href = targetCanvas.toDataURL("image/png");
-                link.click();
-            });
         }
     </script>
 </body>
