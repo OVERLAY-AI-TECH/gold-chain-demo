@@ -125,7 +125,7 @@
                 jewelryOverlay = document.createElement("img");
                 updateImage();
                 jewelryOverlay.style.position = "fixed";
-                jewelryOverlay.style.top = "30%";
+                jewelryOverlay.style.top = "50%";
                 jewelryOverlay.style.left = "50%";
                 jewelryOverlay.style.transform = "translateX(-50%)";
                 document.body.appendChild(jewelryOverlay);
@@ -157,13 +157,21 @@
         function clickButtonAction() {
             html2canvas(document.body, {
                 useCORS: true,
-                scale: window.devicePixelRatio, // Ensures resolution is preserved
-                width: window.innerWidth, // Matches viewport width
-                height: window.innerHeight // Matches viewport height
+                scale: window.devicePixelRatio, 
+                width: window.innerWidth, 
+                height: window.innerHeight 
             }).then(canvas => {
+                // Ensure the canvas matches the screen size exactly
+                const targetCanvas = document.createElement("canvas");
+                targetCanvas.width = canvas.width;
+                targetCanvas.height = canvas.height;
+                
+                const ctx = targetCanvas.getContext("2d");
+                ctx.drawImage(canvas, 0, 0, targetCanvas.width, targetCanvas.height);
+
                 const link = document.createElement("a");
                 link.download = "capture.png";
-                link.href = canvas.toDataURL("image/png");
+                link.href = targetCanvas.toDataURL("image/png");
                 link.click();
             });
         }
