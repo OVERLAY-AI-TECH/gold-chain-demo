@@ -53,6 +53,18 @@
             top: 50%;
             transform: translateY(-50%);
         }
+
+        /* Loading Spinner */
+        #loading-spinner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: white;
+            z-index: 1000;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -81,8 +93,12 @@
     <button class="arrow-button" id="left-arrow" onclick="previousImage()">&#9664;</button>
     <button class="arrow-button" id="right-arrow" onclick="nextImage()">&#9654;</button>
 
+    <!-- Loading Spinner -->
+    <div id="loading-spinner">Loading Camera...</div>
+
     <script>
         const tryOnButton = document.getElementById("try-on-button");
+        const loadingSpinner = document.getElementById("loading-spinner");
 
         // Images array and current index
         const images = ["design1.png", "design2.png", "design3.png", "design4.png", "design5.png"];
@@ -112,9 +128,11 @@
         // Function to open camera and show jewelry overlay
         function openCamera() {
             console.log("Opening front camera...");
+            loadingSpinner.style.display = "block"; // Show loading spinner
             navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
             .then(stream => {
                 console.log("Camera accessed successfully");
+                loadingSpinner.style.display = "none"; // Hide loading spinner
 
                 // Remove AR scene and show camera feed
                 document.querySelector("a-scene").remove();
